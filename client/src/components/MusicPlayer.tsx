@@ -1,16 +1,17 @@
 import { useRef, useState, useEffect } from 'react';
 
-const MusicPlayer = ({ audioSrc }: { audioSrc: string }) => {
+const MusicPlayer = ({ audioSrc, numberGueses }: { audioSrc: string, numberGueses: number }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [numberGueses, setNumberGueses] = useState(0);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const handlePlay = () => {
-        audioRef.current?.play();
-        setIsPlaying(true);
+        if (currentTime < (duration / (6 - numberGueses))) {
+            audioRef.current?.play();
+            setIsPlaying(true);
+        }
     };
 
     const handlePause = () => {
@@ -34,14 +35,21 @@ const MusicPlayer = ({ audioSrc }: { audioSrc: string }) => {
         }
     };
 
+    console.log("Current time ", currentTime)
 
+    useEffect(() => {
+        if (currentTime > (duration / (6 - numberGueses))) {
+            handlePause();
+        }
+    }, [currentTime])
+    
     useEffect(() => {
         if (audioRef.current) {
             const audio = audioRef.current;
 
             const updateTime = () => setCurrentTime(audio.currentTime);
             const setAudioDuration = () => setDuration(audio.duration);
-            setNumberGueses(0);
+            // setNumberGueses(0);
 
             audio.addEventListener('timeupdate', updateTime);
             audio.addEventListener('loadedmetadata', setAudioDuration);
