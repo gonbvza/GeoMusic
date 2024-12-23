@@ -2,10 +2,12 @@ import { useState } from 'react';
 
 interface GuesserProps {
     setNumberGueses: React.Dispatch<React.SetStateAction<number>>;
+    setCountryGuessed: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsRunning: React.Dispatch<React.SetStateAction<boolean>>;
     numberGueses: number;
 }
 
-const Guesser = ({ setNumberGueses , numberGueses}: GuesserProps) => {
+const Guesser = ({ setNumberGueses , setCountryGuessed, setIsRunning,  numberGueses}: GuesserProps) => {
     const [guess, setGuess] = useState(""); 
     const [suggestions, setSuggestions] = useState<string[]>([]); 
     const [guessedCountries, setGuessedCountries] = useState<[string, number][]>([]);
@@ -35,6 +37,8 @@ const Guesser = ({ setNumberGueses , numberGueses}: GuesserProps) => {
     
     function correctGuess() {
         setGuess("")
+        setCountryGuessed(true);
+        setIsRunning(true);
         console.log("Correct guess")
     }
     

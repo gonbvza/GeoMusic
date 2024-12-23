@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 
-const MusicPlayer = ({ audioSrc, numberGueses }: { audioSrc: string, numberGueses: number }) => {
+const MusicPlayer = ({ audioSrc, numberGueses , countryGuessed}: { audioSrc: string, numberGueses: number, countryGuessed: boolean }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -8,7 +8,7 @@ const MusicPlayer = ({ audioSrc, numberGueses }: { audioSrc: string, numberGuese
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const handlePlay = () => {
-        if (currentTime < (duration / (6 - numberGueses))) {
+        if (currentTime < (duration / (6 - numberGueses)) && !countryGuessed) {
             audioRef.current?.play();
             setIsPlaying(true);
         }
@@ -42,6 +42,12 @@ const MusicPlayer = ({ audioSrc, numberGueses }: { audioSrc: string, numberGuese
             handlePause();
         }
     }, [currentTime])
+    
+    useEffect(() => {
+        if (countryGuessed) {
+            handlePause();
+        }
+    }, [countryGuessed])
     
     useEffect(() => {
         if (audioRef.current) {
