@@ -4,13 +4,14 @@ interface GuesserProps {
     setNumberGueses: React.Dispatch<React.SetStateAction<number>>;
     setCountryGuessed: React.Dispatch<React.SetStateAction<boolean>>;
     setIsRunning: React.Dispatch<React.SetStateAction<boolean>>;
+    guessedCountries: [string, number][];
+    setGuessedCountries: React.Dispatch<React.SetStateAction<[string, number][]>>;
     numberGueses: number;
 }
 
-const Guesser = ({ setNumberGueses , setCountryGuessed, setIsRunning,  numberGueses}: GuesserProps) => {
+const Guesser = ({ setNumberGueses , setCountryGuessed, setIsRunning, guessedCountries, setGuessedCountries, numberGueses}: GuesserProps) => {
     const [guess, setGuess] = useState(""); 
     const [suggestions, setSuggestions] = useState<string[]>([]); 
-    const [guessedCountries, setGuessedCountries] = useState<[string, number][]>([]);
 
     const possibleGuesses = ["albania", "austria", "spain", "italy", "france", "russia", "china", "egypt", "germany"];
 

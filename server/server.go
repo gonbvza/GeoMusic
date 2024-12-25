@@ -75,45 +75,92 @@ func connect() *mongo.Client {
 	return client
 }
 
-func getSong(client *mongo.Client) http.HandlerFunc {
-	return enableCORS(func(w http.ResponseWriter, req *http.Request) {
-		if globalVar.Name == "" || (globalVar.StoredDate.Add(24 * time.Hour).Before(time.Now())) {
-			fmt.Println("Retrieving data from the database...")
-			collection := client.Database("GeoMusic").Collection("GeoMusic")
-			countryCollection := client.Database("GeoMusic").Collection("Countries")
+func updateCurrentSong(client *mongo.Client) {
+	collection := client.Database("GeoMusic").Collection("GeoMusic")
+	countryCollection := client.Database("GeoMusic").Collection("Countries")
 
-			filter := bson.D{{"played", "False"}}
-			var result bson.M
-			err := collection.FindOne(context.TODO(), filter).Decode(&result)
-			if err != nil {
-				http.Error(w, "Failed to find a song: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			globalVar = song{
-				Name:       result["name"].(string),
-				Index:      result["index"].(string),
-				StoredDate: time.Now(),
-			}
-
-			countryFilter := bson.D{{"name", result["country"].(string)}}
-			var countryResult bson.M
-			errCountry := countryCollection.FindOne(context.TODO(), countryFilter).Decode(&countryResult)
-			if errCountry != nil {
-				http.Error(w, "Failed to find a country: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			globalCountry = currentCountry{
-				name: countryResult["name"].(string),
-				lat:  countryResult["lat"].(float64),
-				long: countryResult["long"].(float64),
-			}
-
-			fmt.Printf("Song found and set: %v\n", globalVar)
-			fmt.Printf("Country found and ser: %v\n", globalCountry)
+	// Fetch the next song that hasn't been played
+	filter := bson.D{{"played", "False"}}
+	var result bson.M
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
+	if result == nil {
+		// Reset all songs to unplayed
+		_, err = collection.UpdateMany(context.TODO(), bson.D{{}}, bson.D{{"$set", bson.D{{"played", "False"}}}})
+		if err != nil {
+			log.Printf("Failed to reset all songs: %v\n", err)
+			return
 		}
 
+		// Fetch the next song that hasn't been played
+		err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	} else if err != nil {
+		log.Printf("Failed to find a song: %v\n", err)
+		return
+	}
+
+	// Update the song to played
+	songIndex := result["index"].(string)
+	updateFilter := bson.D{{"index", songIndex}}
+	_, err = collection.UpdateOne(context.TODO(), updateFilter, bson.D{{"$set", bson.D{{"played", "True"}}}})
+	if err != nil {
+		log.Printf("Failed to update a song: %v\n", err)
+		return
+	}
+
+	// Fetch the associated country details
+	countryFilter := bson.D{{"name", result["country"].(string)}}
+	var countryResult bson.M
+	errCountry := countryCollection.FindOne(context.TODO(), countryFilter).Decode(&countryResult)
+	if errCountry != nil {
+		log.Printf("Failed to find a country: %v\n", errCountry)
+		return
+	}
+
+	// Update global variables
+	globalVar = song{
+		Name:       result["name"].(string),
+		Index:      result["index"].(string),
+		StoredDate: time.Now(),
+	}
+
+	globalCountry = currentCountry{
+		name: countryResult["name"].(string),
+		lat:  countryResult["lat"].(float64),
+		long: countryResult["long"].(float64),
+	}
+
+	fmt.Printf("Song updated: %v\n", globalVar)
+	fmt.Printf("Country updated: %v\n", globalCountry)
+}
+
+func updateSongAtMidnight(client *mongo.Client) {
+
+	now := time.Now()
+	nextMidnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, now.Location())
+	durationUntilMidnight := time.Until(nextMidnight)
+
+	fmt.Printf("time until midnight: %v\n", durationUntilMidnight)
+
+	fmt.Printf("Waiting until midnight: %v\n", nextMidnight)
+	time.Sleep(durationUntilMidnight)
+
+	fmt.Println("Midnight reached: Updating the song...")
+	updateCurrentSong(client)
+
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Println("Routine triggered: Updating the song...")
+			updateCurrentSong(client)
+		}
+	}
+}
+
+func getSong(client *mongo.Client) http.HandlerFunc {
+	return enableCORS(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(globalVar)
 	})
@@ -186,12 +233,16 @@ func main() {
 		fmt.Println("Disconnected from MongoDB.")
 	}()
 
-	fmt.Println("Connected to MongoDB.")
+	updateCurrentSong(client)
 
+	// Start the background routine
+	go updateSongAtMidnight(client)
+
+	// Start the HTTP server
+	fmt.Println("Connected to MongoDB.")
+	fmt.Println("Server is running on port 8090")
 	http.HandleFunc("/favicon.ico", icon)
 	http.HandleFunc("/song", getSong(client))
 	http.HandleFunc("/checkCountry", checkSong(client))
-
-	fmt.Println("Server is running on port 8090")
 	log.Fatal(http.ListenAndServe(":8090", nil))
 }

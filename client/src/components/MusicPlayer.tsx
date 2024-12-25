@@ -35,10 +35,10 @@ const MusicPlayer = ({ audioSrc, numberGueses , countryGuessed}: { audioSrc: str
         }
     };
 
-    console.log("Current time ", currentTime)
 
     useEffect(() => {
         if (currentTime > (duration / (6 - numberGueses))) {
+            setCurrentTime(0);
             handlePause();
         }
     }, [currentTime])
