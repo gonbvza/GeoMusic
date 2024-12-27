@@ -13,40 +13,57 @@ function App() {
   const [countryGuessed, setCountryGuessed] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [guessedCountries, setGuessedCountries] = useState<[string, number][]>([]);
-  const [cookies, setCookie] = useCookies(['guessedCountries']);
+  const [cookies, setCookie] = useCookies(['guessedCountries', 'isRunning']);
+
+  // Helpers
+  const setMidnightExpiration = () => {
+    const now = new Date();
+    const midnight = new Date();
+
+    midnight.setDate(now.getDate() + 1); 
+    midnight.setHours(0, 0, 0, 0); 
+    
+    console.log('Cookie expiration:', midnight);
+    return midnight;
+  };
+
 
   // Retrieve guessed countries from cookies on mount
   useEffect(() => {
-    const cookieValue = cookies.guessedCountries;
-    if (cookieValue) {
+    const cookieGuessedCountries = cookies.guessedCountries;
+    if (cookieGuessedCountries) {
       try {
-        setGuessedCountries(cookieValue);
-        setNumberGueses(cookieValue.length);
+        setGuessedCountries(cookieGuessedCountries);
+        setNumberGueses(cookieGuessedCountries.length);
       } catch (error) {
         console.error('Error parsing guessedCountries cookie:', error);
       }
     }
-  }, []); // Runs only once on mount
+
+    const cookieIsRunning = cookies.isRunning;
+    if (cookieIsRunning) {
+      try {
+        setIsRunning(cookieIsRunning);
+      } catch (error) {
+        console.error('Error parsing isRunning cookie:', error);
+      }
+    }
+  }, []); 
 
   // Update cookies when guessedCountries changes
-  useEffect(() => {
-    const setMidnightExpiration = () => {
-      const now = new Date();
-      const midnight = new Date();
-  
-      midnight.setDate(now.getDate() + 1); // Move to the next day
-      midnight.setHours(0, 0, 0, 0); // Set time to 00:00:00
-      
-      console.log('Cookie expiration:', midnight);
-      return midnight;
-    };
-  
+  useEffect(() => {  
     setCookie('guessedCountries', JSON.stringify(guessedCountries), {
       path: '/',
       expires: setMidnightExpiration(),
     });
   }, [guessedCountries, setCookie]);
   
+  useEffect(() => {
+    setCookie('isRunning', isRunning, {
+      path: '/',
+      expires: setMidnightExpiration(),
+    });
+  }, [isRunning]);
 
   // Fetch song data
   useEffect(() => {
