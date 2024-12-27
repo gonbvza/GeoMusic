@@ -79,9 +79,8 @@ const Guesser = ({ setNumberGueses , setCountryGuessed, setIsRunning, guessedCou
             }
         }
     };
-    
 
-    // Handle key press (Enter key to submit guess)
+    
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             submitGuess();
