@@ -15,7 +15,7 @@ function App() {
   const [countryGuessed, setCountryGuessed] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [guessedCountries, setGuessedCountries] = useState<[string, number][]>([]);
-  const [cookies, setCookie] = useCookies(['guessedCountries', 'isRunning']);
+  const [cookies, setCookie] = useCookies(['guessedCountries', 'isRunning', 'correctGuess']);
   const [correctGuess, setCorrectGuess] = useState<string>("");
 
   // Helpers
@@ -51,6 +51,15 @@ function App() {
         console.error('Error parsing isRunning cookie:', error);
       }
     }
+
+    const cookieCorrectGuess = cookies.correctGuess;
+    if (cookieCorrectGuess) {
+      try {
+        setCorrectGuess(cookieCorrectGuess);
+      } catch (error) {
+        console.error('Error parsing isRunning cookie:', error);
+      }
+    }
   }, []); 
 
   // Update cookies when guessedCountries changes
@@ -67,6 +76,13 @@ function App() {
       expires: setMidnightExpiration(),
     });
   }, [isRunning]);
+
+  useEffect(() => {
+    setCookie('correctGuess', correctGuess, {
+      path: '/',
+      expires: setMidnightExpiration(),
+    });
+  }, [correctGuess]);
 
   // Fetch song data
   useEffect(() => {
