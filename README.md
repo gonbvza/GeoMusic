@@ -14,7 +14,6 @@ Links of music in the current implementation is dependent on the server setup. I
 - React.js
 - Go
 - MongoDB
-
 * Cookies for state saving
 
 ## Features in Progress
