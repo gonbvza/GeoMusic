@@ -68,7 +68,7 @@ input[type="range"] {
   margin-top: 30px;
 }
 
-.guess-input {
+.guess-input {  
   background-color: #f1f4f9; 
   border: 2px solid #436ee6; 
   padding: 1rem 2rem; 
@@ -109,13 +109,13 @@ input[type="range"] {
 .countryShow {
   display: flex;
   align-items: center;
+  height: 100%;
 }
 
 .guessedCountries {
   list-style-type: none;
   padding: 0;
   margin-top: 10px;
-  max-height: 150px;
   overflow-y: auto;
 }
 
@@ -178,6 +178,7 @@ input[type="range"] {
   z-index: 2; 
   width: 400px;
   max-width: 90%; 
+  text-align: center;
 }
 
 .winning-modal h1 {
@@ -203,4 +204,27 @@ input[type="range"] {
 
 .winning-modal button:hover {
   background-color: #218838;
+}
+
+.winningModalGuessedCountries {
+  list-style-type: none;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+
+.winningModalGuessedCountries li {
+  background-color: #2D3F57;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  margin-bottom: 5px;
+  text-align: center;
+  color: white;
+  width: 73%;
+}
+
+.winningModalCountryShow {
+  display: flex;
+  height: 100%;
 }

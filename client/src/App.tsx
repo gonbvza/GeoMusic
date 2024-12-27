@@ -6,14 +6,17 @@ import Guesser from './components/Guesser.tsx';
 import Confetti from './components/Confetti.tsx';
 import WiningModal from './components/WiningModal.tsx';
 import { useCookies } from 'react-cookie';
+import { getSong } from './api/requestSongApi.ts';
 
 function App() {
+
   const [name, setName] = useState<string | null>(null);
   const [numberGueses, setNumberGueses] = useState<number>(0);
   const [countryGuessed, setCountryGuessed] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [guessedCountries, setGuessedCountries] = useState<[string, number][]>([]);
   const [cookies, setCookie] = useCookies(['guessedCountries', 'isRunning']);
+  const [correctGuess, setCorrectGuess] = useState<string>("");
 
   // Helpers
   const setMidnightExpiration = () => {
@@ -67,24 +70,9 @@ function App() {
 
   // Fetch song data
   useEffect(() => {
-    fetch('http://localhost:8090/song', {
-      method: 'GET',
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then((json) => {
-        console.log('Response received:', json); 
-        if (json && json.index) {
-          setName(json.index);
-        } else {
-          console.error('Invalid JSON structure:', json);
-        }
-      })
-      .catch((error) => console.error('Fetch error:', error));
+    getSong()
+      .then((json) => setName(json.index))
+      .catch((error) => console.error('Failed to fetch song:', error));
   }, []);
 
   return (
@@ -106,9 +94,10 @@ function App() {
         guessedCountries={guessedCountries}
         setGuessedCountries={setGuessedCountries}
         numberGueses={numberGueses}
+        setCorrectGuess={setCorrectGuess}
       />
       <Confetti isRunning={isRunning} />
-      {isRunning && <WiningModal isRunning={isRunning} />}
+      {isRunning && <WiningModal isRunning={isRunning} guessedCountries={guessedCountries} correctGuess={correctGuess}/>}
     </>
   );
 }

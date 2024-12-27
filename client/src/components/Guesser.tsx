@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import possibleGuesses from '../countries/countries.js';
+import { sendCountry } from '../api/sendCountryApi.ts';
 
 interface GuesserProps {
     setNumberGueses: React.Dispatch<React.SetStateAction<number>>;
@@ -7,36 +9,16 @@ interface GuesserProps {
     guessedCountries: [string, number][];
     setGuessedCountries: React.Dispatch<React.SetStateAction<[string, number][]>>;
     numberGueses: number;
+    setCorrectGuess: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const Guesser = ({ setNumberGueses , setCountryGuessed, setIsRunning, guessedCountries, setGuessedCountries, numberGueses}: GuesserProps) => {
+const Guesser = ({ setNumberGueses , setCountryGuessed, setIsRunning, guessedCountries, setGuessedCountries, numberGueses, setCorrectGuess}: GuesserProps) => {
+
     const [guess, setGuess] = useState(""); 
     const [suggestions, setSuggestions] = useState<string[]>([]); 
-
-    const possibleGuesses = ["albania", "austria", "spain", "italy", "france", "russia", "china", "egypt", "germany"];
-
-    async function sendCountry(country: string) {
-        try {
-            const response = await fetch("http://localhost:8090/checkCountry", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ country }),
-            });
-    
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
-            }
-    
-            const json = await response.json(); // Ensure the response is parsed as JSON
-            console.log("Response received:", json);
-            return json;
-        } catch (error) {
-            console.error("Error in sendCountry:", error);
-            throw error;
-        }
-    }
     
     function correctGuess() {
+        setCorrectGuess(guess);
         setGuess("")
         setCountryGuessed(true);
         setIsRunning(true);
